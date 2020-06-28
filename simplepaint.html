@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Screen Help Now!</title>
+    <meta name="description" content="Screen Help Now!">
+	  <meta name="author" content="Clement Zheng">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      html, body {
+          font-family: Helvetica, sans-serif;
+          color: white;
+          font-size: 50px;
+          font-weight: 700;
+          line-height: 1.0;
+          overflow-x: hidden;
+          background: black;
+      }
+
+      #canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+
+    </style>
+  </head>
+
+  <body class="">
+    
+    <canvas id="canvas"></canvas>
+    
+  </body>
+
+  <script>
+
+    var canvas, ctx;
+    var w, h;
+    var menuWRatio = 0.12;
+    var menuGrid = 30;
+    var menuW;
+
+    function init() {
+      canvas = document.querySelector('#canvas');
+      ctx = canvas.getContext('2d');
+      w = window.innerWidth;
+      h = window.innerHeight;
+      console.log(w, h);
+      canvas.width = w;
+      canvas.height = h;
+      menuW = Math.floor(w * menuWRatio);
+      drawMenu();
+      window.requestAnimationFrame(update);
+    }
+
+    function update() {
+      draw();
+      window.requestAnimationFrame(update);
+    }
+
+    function drawMenu() {
+      ctx.clearRect(-1, -1, w + 2, h + 2);
+      console.log(w, h);
+      var canvasData = ctx.getImageData(0, 0, w, h);
+      var hue = 0, sat = 0, val = 1.0;
+
+      for (var i=0; i<menuW; i=i+menuGrid) {
+        sat = i / (menuW - menuGrid);
+        for (var j=0; j<h; j=j+menuGrid) {
+          hue = j / (h - menuGrid);
+          for (var k=0; k<menuGrid; k++) {
+            for (var l=0; l<menuGrid; l++) {
+              var index = ((i+k) + (j+l)*w) * 4;
+              var col = HSVtoRGB(hue, sat, val);
+              canvasData.data[index+0] = col.r;
+              canvasData.data[index+1] = col.g;
+              canvasData.data[index+2] = col.b;
+              canvasData.data[index+3] = 255;
+            }
+          }
+        } 
+      }
+
+      ctx.putImageData(canvasData, 0, 0);
+    }
+    
+    function draw() {
+    }
+
+    window.onload = init();
+
+    function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+  </script>
+</html>
