@@ -31,12 +31,25 @@
         height: 100vh;
       }
 
+      #color {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        visibility: hidden;
+        width: 7vw;
+        height: 7vw;
+        background: black;
+        border: 5px solid black;
+      }
+
     </style>
   </head>
 
   <body class="">
     
     <canvas id="canvas"></canvas>
+
+    <div id="color" class="hide"></div>
     
   </body>
 
@@ -44,42 +57,78 @@
 
     var canvas, ctx;
     var w, h;
-    var menuWRatio = 0.12;
+    var menuWRatio = 0.15;
     var menuGrid = 30;
     var menuW;
+    
+    var colorGrid;
+    var selectedColor = {r:255, g:255, b:255};
+
+    var mouseHist = 20;
+    var mousePos = [];
+    var mouseVel = 0;
+    var mouseAcc = 0; 
+
+    var mouseSize = 30;
+    var maxAcc = 5;
+    var accFactor = 0.2;
 
     function init() {
       canvas = document.querySelector('#canvas');
       ctx = canvas.getContext('2d');
+      
       w = window.innerWidth;
       h = window.innerHeight;
       console.log(w, h);
+      
       canvas.width = w;
       canvas.height = h;
-      menuW = Math.floor(w * menuWRatio);
+      
+      menuW = Math.round(w * menuWRatio / menuGrid) * menuGrid;
+
+      mouseSize = w*0.02;
+      console.log(mouseSize);
+
       drawMenu();
+      
       window.requestAnimationFrame(update);
     }
 
     function update() {
-      draw();
+      // if (mousePos.length > 0 && mouseDown) {
+      //   draw();
+      // }
       window.requestAnimationFrame(update);
     }
 
     function drawMenu() {
+      colorGrid = [];
+      for (var i=0; i<menuW; i++) {
+        colorGrid.push([]);
+        for (var j=0; j<h; j++) {
+          colorGrid[i].push(0);
+        }
+      }
+      
       ctx.clearRect(-1, -1, w + 2, h + 2);
-      console.log(w, h);
       var canvasData = ctx.getImageData(0, 0, w, h);
       var hue = 0, sat = 0, val = 1.0;
 
       for (var i=0; i<menuW; i=i+menuGrid) {
         sat = i / (menuW - menuGrid);
+
         for (var j=0; j<h; j=j+menuGrid) {
           hue = j / (h - menuGrid);
+          var col = HSVtoRGB(hue, sat, val);
+
           for (var k=0; k<menuGrid; k++) {
             for (var l=0; l<menuGrid; l++) {
+
+              if (i+k < menuW && j+l < h) {
+                colorGrid[i+k][j+l] = col;
+              }
+
               var index = ((i+k) + (j+l)*w) * 4;
-              var col = HSVtoRGB(hue, sat, val);
               canvasData.data[index+0] = col.r;
               canvasData.data[index+1] = col.g;
               canvasData.data[index+2] = col.b;
@@ -93,9 +142,100 @@
     }
     
     function draw() {
+      var canvasData = ctx.getImageData(0, 0, w, h);
+      var radius = (mouseSize*0.5);
+      var factor = mouseAcc > maxAcc ? 0.5 : mouseAcc < 0 ? 0 : mouseAcc/maxAcc * 0.5;
+      radius = Math.round(radius - radius*factor);
+
+      for (var i=-radius; i<=radius; i++) {
+        for (var j=-radius; j<=radius; j++) {
+          var d = Math.pow(Math.pow(i, 2) + Math.pow(j, 2), 0.5);
+          if (d <= radius) {
+            var x = mousePos[mousePos.length-1].x + i;
+            var y = mousePos[mousePos.length-1].y + j;
+            if (x > menuW) {
+              var index = (x + y*w) * 4;
+              var r = canvasData.data[index+0];
+              var g = canvasData.data[index+1];
+              var b = canvasData.data[index+2];
+              var a = canvasData.data[index+3]/255;
+
+              var alpha = Math.pow(1 - d/radius, 0.5);
+
+              a = a < 1-alpha ? a : 1-alpha;
+
+              canvasData.data[index+0] = Math.floor(selectedColor.r*alpha + r*a);
+              canvasData.data[index+1] = Math.floor(selectedColor.g*alpha + g*a);
+              canvasData.data[index+2] = Math.floor(selectedColor.b*alpha + b*a);
+              canvasData.data[index+3] = Math.floor(alpha*255 + a*255);
+            }
+          }
+        }  
+      }
+
+      ctx.putImageData(canvasData, 0, 0);
+    }
+
+    function updateMouse(x, y) {
+      mousePos.push({x:x, y:y});
+      mousePos.splice(0, 1);
+
+      mouseVelArr = [];
+      for(var i=mousePos.length-1; i>0; i--) {
+        mouseVelArr.push(Math.pow(Math.pow(mousePos[i].x - mousePos[i-1].x, 2) + Math.pow(mousePos[i].y - mousePos[i-1].y, 2), 0.5));
+      }
+
+      mouseAccArr = [];
+      for(var i=0; i<mouseVelArr.length-1; i++) {
+        mouseAccArr.push(mouseVelArr[i] - mouseVelArr[i+1]);
+      }
+
+      mouseAcc = mouseAccArr.reduce((acc, curr) => acc + curr);
+    }
+
+    function selectColor(x, y) {
+      selectedColor = colorGrid[x][y];
+      document.querySelector('#color').style.background = `rgb(${selectedColor.r},${selectedColor.g},${selectedColor.b})`;
+      document.querySelector('#color').style.bottom = `${h-y}px`;
+      document.querySelector('#color').style.left = `${x}px`;
+      document.querySelector('#color').style.visibility = 'visible';
     }
 
     window.onload = init();
+
+    var mouseDown = false;
+
+    window.addEventListener('mousedown', e => {
+      mouseDown = true;
+      if (e.pageX < menuW) {
+        selectColor(e.pageX, e.pageY);
+      }
+    });
+
+    window.addEventListener('mouseup', e => {
+      mouseDown = false;
+      document.querySelector('#color').style.visibility = 'hidden';
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (mousePos.length == 0) {
+        for (var i=0; i<mouseHist; i++) {
+          mousePos.push({x:e.pageX, y:e.pageY});
+        }
+      } else {
+        updateMouse(e.pageX, e.pageY);
+      }
+
+      if (e.pageX > menuW && mouseDown) {
+        draw();
+      }
+
+      if (e.pageX < menuW && mouseDown) {
+        selectColor(e.pageX, e.pageY);
+      } else if (e.pageX >= menuW) {
+        document.querySelector('#color').style.visibility = 'hidden';
+      }
+    });
 
     function HSVtoRGB(h, s, v) {
     var r, g, b, i, f, p, q, t;
