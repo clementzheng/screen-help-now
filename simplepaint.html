@@ -239,16 +239,11 @@
 
     window.addEventListener('touchstart', e => {
       mouseDown = true;
-      var posX = Math.floor(e.touches[0].screenX);
-      var posY = Math.floor(e.touches[0].screenY);
+
       if (posX < menuW) {
         selectColor(posX, posY);
       }
 
-      for (var i=0; i<mousePos.length; i++) {
-        mousePos[i] = {x:mousePos[mousePos.length-1].x, y:mousePos[mousePos.length-1].y};
-        mouseAcc = 0;
-      }
     });
 
     window.addEventListener('touchend', e => {
