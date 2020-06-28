@@ -240,7 +240,7 @@
     window.addEventListener('touchmove', e => {
 
       console.log(e.touches);
-      preventDefault();
+      e.preventDefault();
 
       if (mousePos.length == 0) {
         for (var i=0; i<mouseHist; i++) {
