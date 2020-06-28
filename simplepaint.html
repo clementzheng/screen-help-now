@@ -70,7 +70,7 @@
     var mouseAcc = 0; 
 
     var mouseSize = 30;
-    var maxAcc = 10;
+    var maxAcc = 20;
     var accFactor = 0.3;
 
     function init() {
@@ -148,15 +148,20 @@
       radius = Math.round(radius - radius*factor);
 
       var vector = {x: mousePos[mousePos.length-1].x - mousePos[mousePos.length-2].x, y: mousePos[mousePos.length-1].y - mousePos[mousePos.length-2].y};
+      var vector2 = {x: mousePos[mousePos.length-2].x - mousePos[mousePos.length-3].x, y: mousePos[mousePos.length-2].y - mousePos[mousePos.length-3].y};
       var mag = Math.pow(Math.pow(vector.x, 2) + Math.pow(vector.y, 2), 0.5);
-      var steps = Math.ceil(mag/(radius-1));
+      var mag2 = Math.pow(Math.pow(vector2.x, 2) + Math.pow(vector2.y, 2), 0.5);
+      vector2 = {x: vector2.x/mag2, y: vector2.y/mag2};
+      var steps = Math.ceil(mag/(radius*0.25));
       var vectorStep = {x: vector.x/steps, y: vector.y/steps};
+      var vector2Step = {x: vector2.x*mag/steps, y: vector2.y*mag/steps};
 
       console.log(steps);
 
       for (var v=0; v<=steps; v++) {
-        var mX = Math.round(mousePos[mousePos.length-2].x + v*vectorStep.x);
-        var mY = Math.round(mousePos[mousePos.length-2].y + v*vectorStep.y);
+        var ratio = 0.5 + 0.5*v/steps;
+        var mX = Math.round(mousePos[mousePos.length-2].x + ratio*v*vectorStep.x + (1-ratio)*v*vector2Step.x);
+        var mY = Math.round(mousePos[mousePos.length-2].y + ratio*v*vectorStep.y + (1-ratio)*v*vector2Step.y);
 
         console.log(mX, mY);
 
@@ -207,7 +212,7 @@
       }
 
       newMouseAcc = mouseAccArr.reduce((acc, curr) => acc + curr);
-      mouseAcc = (mouseAcc + newMouseAcc)/2;
+      mouseAcc = (mouseAcc*0.7 + newMouseAcc*0.3);
     }
 
     function selectColor(x, y) {
