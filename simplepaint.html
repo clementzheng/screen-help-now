@@ -241,6 +241,9 @@
       mouseDown = true;
       var posX = Math.floor(e.touches[0].pageX);
       var posY = Math.floor(e.touches[0].pageY);
+
+      updateMouse(posX, posY);
+
       if (posX < menuW) {
         selectColor(posX, posY);
       }
