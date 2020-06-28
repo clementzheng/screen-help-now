@@ -206,7 +206,8 @@
         mouseAccArr.push(mouseVelArr[i] - mouseVelArr[i+1]);
       }
 
-      mouseAcc = mouseAccArr.reduce((acc, curr) => acc + curr);
+      newMouseAcc = mouseAccArr.reduce((acc, curr) => acc + curr);
+      mouseAcc = (mouseAcc + newMouseAcc)/2;
     }
 
     function selectColor(x, y) {
