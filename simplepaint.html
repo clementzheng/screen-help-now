@@ -239,8 +239,8 @@
 
     window.addEventListener('touchstart', e => {
       mouseDown = true;
-      var posX = Math.floor(e.touches[0].screenX);
-      var posY = Math.floor(e.touches[0].screenY);
+      var posX = Math.floor(e.touches[0].pageX);
+      var posY = Math.floor(e.touches[0].pageY);
       if (posX < menuW) {
         selectColor(posX, posY);
       }
@@ -260,27 +260,33 @@
 
       // console.log(e.touches[0].screenX, e.touches[0].screenY);
 
-      var posX = Math.floor(e.touches[0].screenX);
-      var posY = Math.floor(e.touches[0].screenY);
+      if (e.touches.length > 0) {
 
-      if (mousePos.length == 0) {
-        for (var i=0; i<mouseHist; i++) {
-          mousePos.push({x:posX, y:posY});
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        var posX = Math.floor(e.touches[0].pageX);
+        var posY = Math.floor(e.touches[0].pageY);
+
+        if (mousePos.length == 0) {
+          for (var i=0; i<mouseHist; i++) {
+            mousePos.push({x:posX, y:posY});
+          }
+        } else {
+          updateMouse(posX, posY);
         }
-      } else {
-        updateMouse(posX, posY);
-      }
 
-      // if (posX > menuW) {
-      //   draw();
-      // }
+        // if (posX > menuW) {
+        //   draw();
+        // }
 
-      if (posX < menuW) {
-        selectColor(posX, posY);
-      } else if (posX >= menuW) {
-        document.querySelector('#color').style.visibility = 'hidden';
+        if (posX < menuW) {
+          selectColor(posX, posY);
+        } else if (posX >= menuW) {
+          document.querySelector('#color').style.visibility = 'hidden';
+        }
       }
-    });
+    }, { passive: false });
 
     function HSVtoRGB(h, s, v) {
     var r, g, b, i, f, p, q, t;
