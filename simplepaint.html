@@ -255,21 +255,27 @@
     });
 
     window.addEventListener('touchstart', e => {
-      mouseDown = true;
-      var posX = Math.floor(e.touches[0].pageX);
-      var posY = Math.floor(e.touches[0].pageY);
 
-      updateMouse(posX, posY);
+      if (e.touches.length > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
-      if (posX < menuW) {
-        selectColor(posX, posY);
+        mouseDown = true;
+        var posX = Math.floor(e.touches[0].pageX);
+        var posY = Math.floor(e.touches[0].pageY);
+
+        updateMouse(posX, posY);
+
+        if (posX < menuW) {
+          selectColor(posX, posY);
+        }
+
+        for (var i=0; i<mousePos.length; i++) {
+          mousePos[i] = {x:posX, y:posY};
+          mouseAcc = 0;
+        }
       }
-
-      for (var i=0; i<mousePos.length; i++) {
-        mousePos[i] = {x:posX, y:posY};
-        mouseAcc = 0;
-      }
-    });
+    }, { passive: false });
 
     window.addEventListener('touchend', e => {
       mouseDown = false;
