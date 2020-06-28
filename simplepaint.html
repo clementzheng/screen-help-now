@@ -239,24 +239,26 @@
 
     window.addEventListener('touchmove', e => {
 
-      console.log(e.touches);
-      e.preventDefault();
+      console.log(e.touches[0].screenX, e.touches[0].screenY);
+
+      var posX = Math.floor(e.touches[0].screenX);
+      var posY = Math.floor(e.touches[0].screenY);
 
       if (mousePos.length == 0) {
         for (var i=0; i<mouseHist; i++) {
-          mousePos.push({x:e.touches[0].screenX, y:e.touches[0].screenY});
+          mousePos.push({x:posX, y:posY});
         }
       } else {
-        updateMouse(e.touches[0].screenX, e.touches[0].screenY);
+        updateMouse(posX, posY);
       }
 
-      if (e.touches[0].screenX > menuW) {
+      if (posX > menuW) {
         draw();
       }
 
-      if (e.touches[0].screenX < menuW) {
-        selectColor(e.touches[0].screenX, e.touches[0].screenX);
-      } else if (e.touches[0].screenX >= menuW) {
+      if (posX < menuW) {
+        selectColor(posX, posY);
+      } else if (posX >= menuW) {
         document.querySelector('#color').style.visibility = 'hidden';
       }
     });
