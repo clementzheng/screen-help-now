@@ -237,6 +237,28 @@
       }
     });
 
+    window.addEventListener('touchmove', e => {
+      preventDefault();
+
+      if (mousePos.length == 0) {
+        for (var i=0; i<mouseHist; i++) {
+          mousePos.push({x:e.touches[0].screenX, y:e.touches[0].screenY});
+        }
+      } else {
+        updateMouse(e.touches[0].screenX, e.touches[0].screenY);
+      }
+
+      if (e.touches[0].screenX > menuW) {
+        draw();
+      }
+
+      if (e.touches[0].screenX < menuW) {
+        selectColor(e.touches[0].screenX, e.touches[0].screenX);
+      } else if (e.touches[0].screenX >= menuW) {
+        document.querySelector('#color').style.visibility = 'hidden';
+      }
+    });
+
     function HSVtoRGB(h, s, v) {
     var r, g, b, i, f, p, q, t;
     if (arguments.length === 1) {
