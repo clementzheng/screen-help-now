@@ -86,7 +86,7 @@
       
       menuW = Math.round(w * menuWRatio / menuGrid) * menuGrid;
 
-      mouseSize = w*0.025;
+      mouseSize = w*0.02;
       console.log(mouseSize);
 
       drawMenu();
@@ -147,31 +147,47 @@
       var factor = mouseAcc > maxAcc ? 0.5 : mouseAcc < 0 ? 0 : mouseAcc/maxAcc * 0.5;
       radius = Math.round(radius - radius*factor);
 
-      for (var i=-radius; i<=radius; i++) {
-        for (var j=-radius; j<=radius; j++) {
-          var d = Math.pow(Math.pow(i, 2) + Math.pow(j, 2), 0.5);
-          if (d <= radius) {
-            var x = mousePos[mousePos.length-1].x + i;
-            var y = mousePos[mousePos.length-1].y + j;
-            if (x > menuW) {
-              var index = (x + y*w) * 4;
-              var r = canvasData.data[index+0];
-              var g = canvasData.data[index+1];
-              var b = canvasData.data[index+2];
-              var a = canvasData.data[index+3]/255;
+      var vector = {x: mousePos[mousePos.length-1].x - mousePos[mousePos.length-2].x, y: mousePos[mousePos.length-1].y - mousePos[mousePos.length-2].y};
+      var mag = Math.pow(Math.pow(vector.x, 2) + Math.pow(vector.y, 2), 0.5);
+      var steps = Math.ceil(mag/(radius-1));
+      var vectorStep = {x: vector.x/steps, y: vector.y/steps};
 
-              var alpha = Math.pow(1 - d/radius, 0.25);
+      console.log(steps);
 
-              a = a < 1-alpha ? a : 1-alpha;
+      for (var v=0; v<=steps; v++) {
+        var mX = Math.round(mousePos[mousePos.length-2].x + v*vectorStep.x);
+        var mY = Math.round(mousePos[mousePos.length-2].y + v*vectorStep.y);
 
-              canvasData.data[index+0] = Math.floor(selectedColor.r*alpha + r*a);
-              canvasData.data[index+1] = Math.floor(selectedColor.g*alpha + g*a);
-              canvasData.data[index+2] = Math.floor(selectedColor.b*alpha + b*a);
-              canvasData.data[index+3] = Math.floor(alpha*255 + a*255);
+        console.log(mX, mY);
+
+        for (var i=-radius; i<=radius; i++) {
+          for (var j=-radius; j<=radius; j++) {
+            var d = Math.pow(Math.pow(i, 2) + Math.pow(j, 2), 0.5);
+            if (d <= radius) {
+              var x = mX + i;
+              var y = mY + j;
+              if (x > menuW) {
+                var index = (x + y*w) * 4;
+                var r = canvasData.data[index+0];
+                var g = canvasData.data[index+1];
+                var b = canvasData.data[index+2];
+                var a = canvasData.data[index+3]/255;
+
+                var alpha = Math.pow(1 - d/radius, 0.5);
+
+                a = a < 1-alpha ? a : 1-alpha;
+
+                canvasData.data[index+0] = Math.floor(selectedColor.r*alpha + r*a);
+                canvasData.data[index+1] = Math.floor(selectedColor.g*alpha + g*a);
+                canvasData.data[index+2] = Math.floor(selectedColor.b*alpha + b*a);
+                canvasData.data[index+3] = Math.floor(alpha*255 + a*255);
+              }
             }
-          }
-        }  
+          }  
+        }
+
       }
+
 
       ctx.putImageData(canvasData, 0, 0);
     }
