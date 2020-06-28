@@ -95,9 +95,9 @@
     }
 
     function update() {
-      // if (mousePos.length > 0 && mouseDown) {
-      //   draw();
-      // }
+      if (mousePos.length > 0 && mouseDown) {
+        draw();
+      }
       window.requestAnimationFrame(update);
     }
 
@@ -237,9 +237,23 @@
       }
     });
 
+    window.addEventListener('touchstart', e => {
+      mouseDown = true;
+      var posX = Math.floor(e.touches[0].screenX);
+      var posY = Math.floor(e.touches[0].screenY);
+      if (posX < menuW) {
+        selectColor(posX, posY);
+      }
+    });
+
+    window.addEventListener('touchend', e => {
+      mouseDown = false;
+      document.querySelector('#color').style.visibility = 'hidden';
+    });
+
     window.addEventListener('touchmove', e => {
 
-      console.log(e.touches[0].screenX, e.touches[0].screenY);
+      // console.log(e.touches[0].screenX, e.touches[0].screenY);
 
       var posX = Math.floor(e.touches[0].screenX);
       var posY = Math.floor(e.touches[0].screenY);
@@ -252,9 +266,9 @@
         updateMouse(posX, posY);
       }
 
-      if (posX > menuW) {
-        draw();
-      }
+      // if (posX > menuW) {
+      //   draw();
+      // }
 
       if (posX < menuW) {
         selectColor(posX, posY);
